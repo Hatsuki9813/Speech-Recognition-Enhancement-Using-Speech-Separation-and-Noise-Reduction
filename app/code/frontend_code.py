@@ -5,7 +5,7 @@ from io import StringIO
 import tempfile
 import uuid
 from audiorecorder import audiorecorder
-from backend_code import preprocessing_wav_file, run_mossformer_inference, run_whisper_inference, normalize_text
+from backend_code import preprocessing_wav_file, run_mossformer_inference, run_whisper_inference, normalize_text, remove_silence_overwrite
 from pydub import AudioSegment
 UPLOAD_DIR = "../audio"
 if "upload_id" not in st.session_state:
@@ -101,12 +101,39 @@ with st.container(border=True):
                 os.mkdir(upload_output_folder_sp)
                 status = run_mossformer_inference(input_path, upload_output_folder_sp)
                 st.text(status)
+                seperated_upload_path_1 = os.path.join(upload_output_folder_sp, f"{st.session_state.upload_id}_upload_s1.wav")
+                seperated_upload_path_2 = os.path.join(upload_output_folder_sp, f"{st.session_state.upload_id}_upload_s2.wav")
+                status2 = remove_silence_overwrite(seperated_upload_path_1)
+                status3 = remove_silence_overwrite(seperated_upload_path_2)
+                if status2 and status3:
+                    st.text("Seperated audio 1")
+                    st.audio(seperated_upload_path_1)
+                    seperated_audio_1 = AudioSegment.from_file(seperated_upload_path_1)
+                    st.write(f"Frame rate: {seperated_audio_1.frame_rate}, Frame width: {seperated_audio_1.frame_width}, Duration: {seperated_audio_1.duration_seconds} seconds")
+                    st.text("Seperated audio 2")
+                    st.audio(seperated_upload_path_2)
+                    seperated_audio_2 = AudioSegment.from_file(seperated_upload_path_2)
+                    st.write(f"Frame rate: {seperated_audio_2.frame_rate}, Frame width: {seperated_audio_2.frame_width}, Duration: {seperated_audio_2.duration_seconds} seconds")
             elif mode == "Recording" and st.session_state.record_path:
                 input_path = st.session_state.record_path
                 record_output_folder_sp = os.path.join(UPLOAD_DIR, f"{st.session_state.upload_id}_record")
                 os.mkdir(record_output_folder_sp)
                 status = run_mossformer_inference(input_path, record_output_folder_sp)
                 st.text(status)
+                seperated_record_path_1 = os.path.join(record_output_folder_sp, f"{st.session_state.upload_id}_upload_s1.wav")
+                seperated_record_path_2 = os.path.join(record_output_folder_sp, f"{st.session_state.upload_id}_upload_s2.wav")
+                status2 = remove_silence_overwrite(seperated_record_path_1)
+                status3 = remove_silence_overwrite(seperated_record_path_2)
+                if status2 and status3:
+                    st.text("Seperated audio 1")
+                    st.audio(seperated_record_path_1)
+                    seperated_record_audio_1 = AudioSegment.from_file(seperated_record_path_1)
+                    st.write(f"Frame rate: {seperated_record_audio_1.frame_rate}, Frame width: {seperated_record_audio_1.frame_width}, Duration: {seperated_record_audio_1.duration_seconds} seconds")
+                    st.text("Seperated audio 2")
+                    st.audio(seperated_record_path_2)
+                    seperated_record_audio_2 = AudioSegment.from_file(seperated_record_path_2)
+                    st.write(f"Frame rate: {seperated_record_audio_2.frame_rate}, Frame width: {seperated_record_audio_2.frame_width}, Duration: {seperated_record_audio_2.duration_seconds} seconds")
+                    
 with st.container(border=True):
         st.subheader("4️⃣ Speech-to-Text (Whisper Large)")
         st.info("Transcribe processed audio into text.")
